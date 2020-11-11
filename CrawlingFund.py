@@ -3,7 +3,7 @@
 爬取基金信息的主文件
 """
 import time
-from multiprocessing import Queue, Event
+from multiprocessing import Event
 
 from requests.exceptions import RequestException
 
@@ -13,6 +13,8 @@ from ProvideTheListOfFund import GetFundList, GetFundListByWeb, GetFundListTest
 from DataStructure import FundInfo
 
 # 尝试引入进度条所需库文件
+from my_queue import MyQueue
+
 try:
     from eprogress import LineProgress
 except ImportError:
@@ -34,11 +36,12 @@ def crawling_fund(fund_list_class: GetFundList, first_crawling=True):
     line_progress = None if LineProgress is None else LineProgress(title='爬取进度')
     cur_process = 0
     # 爬取输入、输出队列，输入结束事件，网络状态事件，爬取核心
-    input_queue = Queue()
-    result_queue = Queue()
+    input_queue = MyQueue()
+    result_queue = MyQueue()
     finish_sign = Event()
     network_health = Event()
-    crawling_core = GetPageByWebWithAnotherProcessAndMultiThreading(input_queue, result_queue, finish_sign, network_health)
+    crawling_core = GetPageByWebWithAnotherProcessAndMultiThreading(input_queue, result_queue, finish_sign,
+                                                                    network_health)
     crawling_core.start()
 
     fund_list = fund_list_class.get_fund_list()
